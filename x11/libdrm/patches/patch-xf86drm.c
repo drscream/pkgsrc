@@ -1,198 +1,195 @@
-$NetBSD: patch-xf86drm.c,v 1.1 2018/09/09 04:04:57 maya Exp $
-
-Implement drmParseSubsystemType, drmParsePciBusInfo for NetBSD
-
---- xf86drm.c.orig	2018-09-09 02:59:41.597386206 +0000
-+++ xf86drm.c
-@@ -85,6 +85,9 @@
- 
- #ifdef __NetBSD__
- #define DRM_MAJOR 180
-+#include <sys/param.h>
-+#include <dev/pci/pcireg.h>
-+#include <pci.h>
+--- xf86drm.c.orig	Tue Oct 16 10:26:26 2018
++++ xf86drm.c	Tue Oct 16 10:28:53 2018
+@@ -95,6 +95,11 @@
  #endif
+ #endif /* __OpenBSD__ */
  
- #ifdef __OpenBSD__
-@@ -2990,6 +2993,65 @@ static int drmParseSubsystemType(int maj
-         return DRM_BUS_VIRTIO;
++#if defined(__sun)
++/* Device majors are dynamic. */
++#define DRM_MAJOR	(_sun_drm_get_major())
++#endif /* __sun */
++
+ #ifndef DRM_MAJOR
+ #define DRM_MAJOR 226 /* Linux */
+ #endif
+@@ -362,9 +367,14 @@
+     if (stat(DRM_DIR_NAME, &st)) {
+         if (!isroot)
+             return DRM_ERR_NOT_ROOT;
++#if defined(__sun)
++	/* Let the system do this. */
++	return DRM_ERR_NO_DEVICE;
++#else
+         mkdir(DRM_DIR_NAME, DRM_DEV_DIRMODE);
+         chown_check_return(DRM_DIR_NAME, 0, 0); /* root:root */
+         chmod(DRM_DIR_NAME, DRM_DEV_DIRMODE);
++#endif
+     }
  
-     return -EINVAL;
-+#elif defined(__NetBSD__)
-+    int type, fd;
-+    drmSetVersion sv;
-+    char *buf;
-+    unsigned domain, bus, dev;
-+    int func;
-+    int ret;
-+
-+    /* Get the type of device we're looking for to pick the right pathname.  */
-+    type = drmGetMinorType(min);
-+    if (type == -1)
-+	return -ENODEV;
-+
-+    /* Open the device.  Don't try to create it if it's not there.  */
-+    fd = drmOpenMinor(min, 0, type);
-+    if (fd < 0)
-+	return -errno;
-+
+     /* Check if the device node exists and create it if necessary. */
+@@ -371,8 +381,13 @@
+     if (stat(buf, &st)) {
+         if (!isroot)
+             return DRM_ERR_NOT_ROOT;
++#if defined(__sun)
++	/* Let the system do this. */
++	return DRM_ERR_NO_DEVICE;
++#else
+         remove(buf);
+         mknod(buf, S_IFCHR | devmode, dev);
++#endif
+     }
+ 
+     if (drm_server_info && drm_server_info->get_perms) {
+@@ -418,6 +433,10 @@
+     if (st.st_rdev != dev) {
+         if (!isroot)
+             return DRM_ERR_NOT_ROOT;
++#if defined(__sun)
++	/* Let the system do this. */
++	return DRM_ERR_NO_DEVICE;
++#else
+         remove(buf);
+         mknod(buf, S_IFCHR | devmode, dev);
+         if (drm_server_info && drm_server_info->get_perms) {
+@@ -424,6 +443,7 @@
+             chown_check_return(buf, user, group);
+             chmod(buf, devmode);
+         }
++#endif
+     }
+     fd = open(buf, O_RDWR | O_CLOEXEC, 0);
+     drmMsg("drmOpenDevice: open result is %d, (%s)\n",
+@@ -545,6 +565,7 @@
+     }
+ }
+ 
++#ifndef __sun /* Avoid "static unused" warning */
+ static const char *drmGetMinorName(int type)
+ {
+     switch (type) {
+@@ -558,6 +579,7 @@
+         return NULL;
+     }
+ }
++#endif /* __sun */
+ 
+ /**
+  * Open the device by bus ID.
+@@ -1121,7 +1143,7 @@
+     drm_map_t map;
+ 
+     memclear(map);
+-    map.handle = (void *)(uintptr_t)handle;
++    map.handle = (drm_handle_t)(uintptr_t)handle;
+ 
+     if(drmIoctl(fd, DRM_IOCTL_RM_MAP, &map))
+         return -errno;
+@@ -2750,6 +2772,15 @@
+     fstat(fd, &sbuf);
+     d = sbuf.st_rdev;
+ 
++#if defined(__sun)
 +    /*
-+     * Set the interface version to 1.4 or 1.1, which has the effect of
-+     * populating the bus id for us.
++     * Get rid of clone-open bits in the minor number.
++     * See: the drm driver drm_sun_open()
++     * Don't have DRM_CLONEID_NBITS here.
 +     */
-+    sv.drm_di_major = 1;
-+    sv.drm_di_minor = 4;
-+    sv.drm_dd_major = -1;
-+    sv.drm_dd_minor = -1;
-+    if (drmSetInterfaceVersion(fd, &sv)) {
-+	sv.drm_di_major = 1;
-+	sv.drm_di_minor = 1;
-+	sv.drm_dd_major = -1;
-+	sv.drm_dd_minor = -1;
-+	if (drmSetInterfaceVersion(fd, &sv)) {
-+	    /*
-+	     * We're probably not the master.  Hope the master already
-+	     * set the version to >=1.1 so that we can get the busid.
-+	     */
-+	}
-+    }
++    d &= ~0x3fe00;
++#endif
 +
-+    /* Get the bus id.  */
-+    buf = drmGetBusid(fd);
+     for (i = 0; i < DRM_MAX_MINOR; i++) {
+         snprintf(name, sizeof name, DRM_DEV_NAME, DRM_DIR_NAME, i);
+         if (stat(name, &sbuf) == 0 && sbuf.st_rdev == d)
+@@ -2858,6 +2889,26 @@
+ 
+     closedir(sysdir);
+     return NULL;
++#elif defined(__sun)    /* illumos, OSol */
++    struct stat sbuf;
++    char *path = NULL;
++    int err, maj, min;
 +
-+    /* We're done with the device now.  */
-+    (void)close(fd);
++    if (fstat(fd, &sbuf))
++        return (NULL);
 +
-+    /* If there is no bus id, fail.  */
-+    if (buf == NULL)
-+	return -ENODEV;
++    maj = major(sbuf.st_rdev);
++    min = minor(sbuf.st_rdev);
 +
-+    /* Find a string we know about; otherwise -EINVAL.  */
-+    ret = -EINVAL;
-+    if (strncmp(buf, "pci:", 4) == 0)
-+	ret = DRM_BUS_PCI;
++    if (maj != DRM_MAJOR || !S_ISCHR(sbuf.st_mode))
++        return (NULL);
 +
-+    /* We're done with the bus id.  */
-+    free(buf);
-+
-+    /* Success or not, we're done.  */
-+    return ret;
++    /* Walk devices tree looking for this minor */
++    err = _sun_drm_find_device(min, &path);
++    if (err == 0)
++        return (path);
++    else
++        return NULL;
+ #else
+     struct stat sbuf;
+     char buf[PATH_MAX + 1];
+@@ -2992,6 +3043,20 @@
+     return -EINVAL;
  #elif defined(__OpenBSD__)
      return DRM_BUS_PCI;
++#elif defined(__sun)	/* illumos, OSol */
++    char *path = NULL;
++    int ret;
++
++    if (maj != DRM_MAJOR)
++	    return -EINVAL;
++
++    ret = _sun_drm_find_device(min, &path);
++    if (ret != 0)
++	    return (ret);
++
++    ret = _sun_drm_get_subsystem(path);
++    free(path);
++    return (ret);
  #else
-@@ -3040,6 +3102,73 @@ static int drmParsePciBusInfo(int maj, i
-     info->func = func;
+ #warning "Missing implementation of drmParseSubsystemType"
+     return -EINVAL;
+@@ -3064,6 +3129,21 @@
+     info->func = pinfo.func;
  
      return 0;
-+#elif defined(__NetBSD__)
-+    int type, fd;
-+    drmSetVersion sv;
-+    char *buf;
-+    unsigned domain, bus, dev;
-+    int func;
-+    int ret;
++#elif defined(__sun)	/* illumos, OSol */
++    char *path = NULL;
++    int err;
 +
-+    /* Get the type of device we're looking for to pick the right pathname.  */
-+    type = drmGetMinorType(min);
-+    if (type == -1)
-+	return -ENODEV;
++    if (maj != DRM_MAJOR)
++	    return -EINVAL;
 +
-+    /* Open the device.  Don't try to create it if it's not there.  */
-+    fd = drmOpenMinor(min, 0, type);
-+    if (fd < 0)
-+	return -errno;
++    err = _sun_drm_find_device(min, &path);
++    if (err != 0)
++	    return (err);
 +
-+    /*
-+     * Set the interface version to 1.4 or 1.1, which has the effect of
-+     * populating the bus id for us.
-+     */
-+    sv.drm_di_major = 1;
-+    sv.drm_di_minor = 4;
-+    sv.drm_dd_major = -1;
-+    sv.drm_dd_minor = -1;
-+    if (drmSetInterfaceVersion(fd, &sv)) {
-+	sv.drm_di_major = 1;
-+	sv.drm_di_minor = 1;
-+	sv.drm_dd_major = -1;
-+	sv.drm_dd_minor = -1;
-+	if (drmSetInterfaceVersion(fd, &sv)) {
-+            /*
-+	     * We're probably not the master.  Hope the master already
-+	     * set the version to >=1.1 so that we can get the busid.
-+	     */
-+	}
-+    }
++    err = _sun_drm_get_pci_bus_info(path, info);
++    free(path);
 +
-+    /* Get the bus id.  */
-+    buf = drmGetBusid(fd);
-+
-+    /* We're done with the device now.  */
-+    (void)close(fd);
-+
-+    /* If there is no bus id, fail.  */
-+    if (buf == NULL)
-+	return -ENODEV;
-+
-+    /* Parse the bus id.  */
-+    ret = sscanf(buf, "pci:%04x:%02x:%02x.%d", &domain, &bus, &dev, &func);
-+
-+    /* We're done with the bus id.  */
-+    free(buf);
-+
-+    /* If scanf didn't return 4 -- domain, bus, dev, func -- then fail.  */
-+    if (ret != 4)
-+	return -ENODEV;
-+
-+    /* Populate the results.  */
-+    info->domain = domain;
-+    info->bus = bus;
-+    info->dev = dev;
-+    info->func = func;
-+
-+    /* Success!  */
-+    return 0;
- #elif defined(__OpenBSD__)
-     struct drm_pciinfo pinfo;
-     int fd, type;
-@@ -3209,6 +3338,41 @@ static int drmParsePciDeviceInfo(int maj
-         return parse_config_sysfs_file(maj, min, device);
++    return err;
+ #else
+ #warning "Missing implementation of drmParsePciBusInfo"
+     return -EINVAL;
+@@ -3234,6 +3314,21 @@
+     device->subdevice_id = pinfo.subdevice_id;
  
      return 0;
-+#elif defined(__NetBSD__)
-+    drmPciBusInfo businfo;
-+    char fname[PATH_MAX];
-+    int pcifd;
-+    pcireg_t id, class, subsys;
-+    int ret;
++#elif defined(__sun)	/* illumos, OSol */
++    char *path = NULL;
++    int err;
 +
-+    /* Find where on the bus the device lives.  */
-+    ret = drmParsePciBusInfo(maj, min, &businfo);
-+    if (ret)
-+	return ret;
++    if (maj != DRM_MAJOR)
++	    return -EINVAL;
 +
-+    /* Open the pciN device node to get at its config registers.  */
-+    if (snprintf(fname, sizeof fname, "/dev/pci%u", businfo.domain)
-+	>= sizeof fname)
-+	return -ENODEV;
-+    if ((pcifd = open(fname, O_RDONLY)) == -1)
-+	return -errno;
++    err = _sun_drm_find_device(min, &path);
++    if (err != 0)
++	    return (err);
 +
-+    /* Read the id and class pci config registers.  */
-+    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
-+	    PCI_ID_REG, &id) == -1)
-+	return -errno;
-+    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
-+	    PCI_CLASS_REG, &class) == -1)
-+	return -errno;
-+    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
-+	    PCI_SUBSYS_ID_REG, &subsys) == -1)
-+	return -errno;
++    err = _sun_drm_get_pci_dev_info(path, device);
++    free(path);
 +
-+    device->vendor_id = PCI_VENDOR(id);
-+    device->device_id = PCI_PRODUCT(id);
-+    device->subvendor_id = PCI_SUBSYS_VENDOR(subsys);
-+    device->subdevice_id = PCI_SUBSYS_ID(subsys);
-+    device->revision_id = PCI_REVISION(class);
- #elif defined(__OpenBSD__)
-     struct drm_pciinfo pinfo;
-     int fd, type;
++    return err;
+ #else
+ #warning "Missing implementation of drmParsePciDeviceInfo"
+     return -EINVAL;

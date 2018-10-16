@@ -1,0 +1,12 @@
+--- Makefile.sources.orig	Tue Sep 25 08:41:05 2018
++++ Makefile.sources	Tue Sep 25 08:41:38 2018
+@@ -10,7 +10,8 @@
+ 	libdrm_macros.h \
+ 	libdrm_lists.h \
+ 	util_double_list.h \
+-	util_math.h
++	util_math.h \
++	sun_devinfo.c
+ 
+ LIBDRM_H_FILES := \
+ 	libsync.h \

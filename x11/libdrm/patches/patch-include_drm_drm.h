@@ -1,10 +1,14 @@
-$NetBSD: patch-include_drm_drm.h,v 1.4 2016/04/29 11:17:34 wiz Exp $
-
-Fix compilation on systems that don't provide O_CLOEXEC.
-
---- include/drm/drm.h.orig	2016-04-28 00:44:16.000000000 +0000
-+++ include/drm/drm.h
-@@ -674,7 +674,11 @@ struct drm_set_client_cap {
+--- include/drm/drm.h.orig	Thu Aug 23 22:01:55 2018
++++ include/drm/drm.h	Tue Oct 16 10:46:48 2018
+@@ -46,6 +46,7 @@
+ 
+ #include <sys/ioccom.h>
+ #include <sys/types.h>
++#include <sys/types32.h>
+ typedef int8_t   __s8;
+ typedef uint8_t  __u8;
+ typedef int16_t  __s16;
+@@ -681,7 +682,11 @@
  };
  
  #define DRM_RDWR O_RDWR

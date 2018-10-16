@@ -2,7 +2,7 @@
 
 DISTNAME=		libdrm-2.4.94
 CATEGORIES=		x11 graphics
-PKGREVISION=		1
+PKGREVISION=		2
 MASTER_SITES=		http://dri.freedesktop.org/libdrm/
 EXTRACT_SUFX=		.tar.bz2
 
@@ -14,7 +14,7 @@ ONLY_FOR_PLATFORM=	NetBSD-*-* DragonFly-*-* FreeBSD-*-* OpenBSD-*-* \
 			Linux-*-* SunOS-*-*
 
 USE_PKGLOCALEDIR=	yes
-USE_TOOLS+=		gmake pkg-config
+USE_TOOLS+=		gmake pkg-config autoconf automake autoreconf
 USE_LIBTOOL=		yes
 USE_MULTIARCH=		lib
 PKGCONFIG_OVERRIDE+=	libdrm.pc.in
@@ -42,6 +42,10 @@ CONFIGURE_ARGS+=	--disable-manpages
 CONFIGURE_ARGS+=	--disable-valgrind
 
 LDFLAGS.NetBSD+=	-lpci
+LDFLAGS.SunOS+=		-ldevinfo
+
+pre-configure:
+	cd ${WRKSRC} && autoreconf -vif
 
 PLIST_VARS+=	intel arm
 .if !empty(MACHINE_ARCH:Mi386) || !empty(MACHINE_ARCH:Mx86_64)
@@ -56,4 +60,5 @@ PLIST.arm=	yes
 #.else
 #CONFIGURE_ARGS+=	--disable-intel
 .endif
+.include "../../devel/xorg-util-macros/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"
