@@ -5,6 +5,7 @@ PKGNAME=	${DISTNAME:S/gnupg-/gnupg2-/}
 CATEGORIES=	security
 MASTER_SITES=	ftp://ftp.gnupg.org/gcrypt/gnupg/
 EXTRACT_SUFX=	.tar.bz2
+PKGREVISION=	1
 
 MAINTAINER=	ada@netbsdfr.org
 HOMEPAGE=	https://www.gnupg.org/
