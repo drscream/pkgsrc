@@ -1,7 +1,7 @@
 # $NetBSD: Makefile,v 1.3 2017/08/01 17:40:11 wiz Exp $
 #
 
-VERSION=	5.4.1
+VERSION=	5.5.0
 DISTNAME=	fontawesome-free-${VERSION}-desktop
 PKGNAME=	awesome-otf-${VERSION}
 CATEGORIES=	fonts
