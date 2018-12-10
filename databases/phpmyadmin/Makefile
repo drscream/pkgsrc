@@ -55,16 +55,15 @@ PMCONFFILE=	${PKG_SYSCONFDIR}/config.inc.php
 PMDIR=		${PREFIX}/share/phpmyadmin
 PMVARDIR=	${VARBASE}/phpmyadmin
 
-REPLACE_INTERPRETER+=   php bash
-REPLACE.php.old=        /usr/bin/env php
-REPLACE.php.new=        ${PREFIX}/bin/php
-REPLACE_FILES.php=      vendor/bin/highlight-query vendor/bin/lint-query
-REPLACE_FILES.php+=     vendor/phpmyadmin/sql-parser/bin/highlight-query
-REPLACE_FILES.php+=     vendor/phpmyadmin/sql-parser/bin/lint-query
-REPLACE_FILES.php+=     vendor/phpmyadmin/sql-parser/bin/tokenize-query
-REPLACE.bash.old=	/usr/bin/env bash
-REPLACE.bash.new=	${SH}
-REPLACE_FILES.bash=	vendor/paragonie/random_compat/build-phar.sh
+REPLACE_INTERPRETER+=	php
+REPLACE.php.old=	/usr/bin/env php
+REPLACE.php.new=	${PREFIX}/bin/php
+REPLACE_FILES.php=	vendor/bin/highlight-query vendor/bin/lint-query
+REPLACE_FILES.php+=	vendor/phpmyadmin/sql-parser/bin/highlight-query
+REPLACE_FILES.php+=	vendor/phpmyadmin/sql-parser/bin/lint-query
+REPLACE_FILES.php+=	vendor/phpmyadmin/sql-parser/bin/tokenize-query
+
+REPLACE_SH+=	vendor/paragonie/random_compat/build-phar.sh
 
 CONF_FILES+=	${EXDIR}/apache.conf ${PKG_SYSCONFDIR}/apache.conf
 
