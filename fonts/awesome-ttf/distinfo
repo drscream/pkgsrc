@@ -1,6 +1,6 @@
 $NetBSD: distinfo,v 1.3 2015/11/03 20:44:28 agc Exp $
 
-SHA1 (fontawesome-free-5.4.1-web.zip) = 29fd2fb7d0ce5be9b99ffd09cf1c1fe824075ac9
-RMD160 (fontawesome-free-5.4.1-web.zip) = 27bd5d1d7c01e8adcde34bfd596cf148b3285bfd
-SHA512 (fontawesome-free-5.4.1-web.zip) = 791cd51f4d9392cf047fff57152482901bae1bce923ab348710214b01fd9e9aff6511b09bc1636ee1224850e7d6c7640eec26633cd73807d5cc8742fc0187838
-Size (fontawesome-free-5.4.1-web.zip) = 13335222 bytes
+SHA1 (fontawesome-free-5.5.0-web.zip) = 864f8b4cddfde2887ce91dcbbb4b28af714fe8c6
+RMD160 (fontawesome-free-5.5.0-web.zip) = 6bd04a4e519a1faa40bdc72bee99ab6477dd4752
+SHA512 (fontawesome-free-5.5.0-web.zip) = 55104e8b8de5a7c0d0dbb050a17f71a47fcb0ddafb6260c81174c8cabcec63347c96ccadd4af4364ba04e55bab2223e114641d3c4bdcfd014067e29a899b001a
+Size (fontawesome-free-5.5.0-web.zip) = 13622255 bytes
