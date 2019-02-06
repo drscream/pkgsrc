@@ -16,4 +16,7 @@ TEST_TARGET=		test
 
 .include "../../graphics/ImageMagick/buildlink3.mk"
 .include "../../lang/php/ext.mk"
+.include "../../devel/glib2/buildlink3.mk"
+.include "../../devel/pcre/buildlink3.mk"
+.include "../../graphics/liblqr/buildlink3.mk"
 .include "../../mk/bsd.pkg.mk"
