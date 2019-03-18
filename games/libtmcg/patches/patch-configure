@@ -1,0 +1,15 @@
+$NetBSD$
+
+Replace == with single equals
+
+--- configure.orig	2019-01-18 21:12:09.000000000 +0000
++++ configure
+@@ -17960,7 +17960,7 @@ fi
+ if test "x$with_botan" != x ; then
+ 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Botan" >&5
+ $as_echo_n "checking for Botan... " >&6; }
+-	if test "x$BOTAN_PREFIX" == xyes ; then
++	if test "x$BOTAN_PREFIX" = xyes ; then
+ 		BOTAN_PREFIX="/usr"
+ 	fi
+ 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: in $BOTAN_PREFIX" >&5

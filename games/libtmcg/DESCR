@@ -1,0 +1,6 @@
+LibTMCG is a free C++ library for creating secure and verifiable online
+card games. The library contains a sort of useful classes, algorithms,
+and high-level protocols to support an application programmer in writing
+such software. The most remarkable feature is the absence of a trusted
+third party (TTP), i.e., neither a central game server nor trusted
+hardware components are necessary.
