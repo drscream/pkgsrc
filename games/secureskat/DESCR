@@ -1,0 +1,7 @@
+SecureSkat is a peer-to-peer implementation of the card game Skat.
+
+The program negotiates possible players and sessions over an arbitrary
+IRC network (Internet Relay Chat). It uses the C++ library LibTMCG to
+ensure a reasonable level of verifiablility for card operations.
+Furthermore, SecureSkat provides electronic voting capabilities based
+on a simple playing card encoding.

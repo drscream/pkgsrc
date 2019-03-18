@@ -1,0 +1,4 @@
+@comment $NetBSD$
+bin/SecureSkat
+bin/SecureSkat_random
+share/locale/de/LC_MESSAGES/SecureSkat.mo

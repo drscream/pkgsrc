@@ -1,0 +1,7 @@
+$NetBSD$
+
+SHA1 (SecureSkat-2.14.tar.gz) = 9740d277b0241ab9917ca6f6f531119335e0476e
+RMD160 (SecureSkat-2.14.tar.gz) = d66ab26d656ef6f38ff88da9325ef654019738cf
+SHA512 (SecureSkat-2.14.tar.gz) = f8be8e8aa9d3b714e01d0dd352e906f80c3704a353dd30f59ddccdbac83065013e05e978db4c205650a814edeb70ab6902b14346ec04231991fd550d06dac9bc
+Size (SecureSkat-2.14.tar.gz) = 541035 bytes
+SHA1 (patch-SecureSkat__misc.cc) = 39ffd5d7b74795848fca707bcc13a36bbf7dc588
