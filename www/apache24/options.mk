@@ -2,9 +2,9 @@
 
 PKG_OPTIONS_VAR=		PKG_OPTIONS.apache
 PKG_SUPPORTED_OPTIONS=		apache-mpm-event apache-mpm-prefork apache-mpm-worker \
-				lua http2 suexec xml
+				brotli lua http2 suexec xml
 PKG_SUGGESTED_OPTIONS=		apache-mpm-event apache-mpm-prefork \
-				apache-mpm-worker http2 xml
+				apache-mpm-worker brotli http2 xml
 
 .if ${OPSYS} == "SunOS" && !empty(OS_VERSION:M5.1[0-9])
 PKG_SUPPORTED_OPTIONS+=		privileges
@@ -114,6 +114,13 @@ PLIST.xml=		yes
 .else
 CONFIGURE_ARGS+=	--disable-proxy-html
 CONFIGURE_ARGS+=	--disable-xml2enc
+.endif
+
+.if !empty(PKG_OPTIONS:Mbrotli)
+.include "../../archivers/brotli/buildlink3.mk"
+CONFIGURE_ARGS+=       --enable-brotli
+CONFIGURE_ARGS+=       --with-brotli=${PREFIX}
+PLIST.brotli=          yes
 .endif
 
 # DTrace support is manifest, but actually not implemented at all

@@ -95,6 +95,7 @@ lib/httpd/mod_authz_host.so
 lib/httpd/mod_authz_owner.so
 lib/httpd/mod_authz_user.so
 lib/httpd/mod_autoindex.so
+${PLIST.brotli}lib/httpd/mod_brotli.so
 lib/httpd/mod_buffer.so
 lib/httpd/mod_cache.so
 lib/httpd/mod_cache_disk.so
