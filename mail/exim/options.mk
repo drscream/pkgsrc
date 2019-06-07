@@ -156,7 +156,7 @@ LOOKUP_LIBS+=${COMPILER_RPATH_FLAG}${LOCALBASE}/${BUILDLINK_LIBDIRS.cyrus-sasl} 
 .endif
 
 .if !empty(PKG_OPTIONS:Mspf)
-LOCAL_MAKEFILE_OPTIONS+=EXPERIMENTAL_SPF=yes
+LOCAL_MAKEFILE_OPTIONS+=SUPPORT_SPF=yes
 LOOKUP_LIBS+=		-lspf2
 .  include "../../mail/libspf2/buildlink3.mk"
 .endif
